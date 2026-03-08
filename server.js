@@ -19,6 +19,10 @@ try {
 const app = express()
 
 const isProd = process.argv.includes('--prod') || process.env.NODE_ENV === 'production'
+// Vercel sets this env var automatically. When true, skip WebSocket-based
+// net-browserify (Vercel doesn't support persistent WebSocket upgrades) and
+// skip static file serving (Vercel CDN handles that from dist/ directly).
+const isVercel = !!process.env.VERCEL
 const timeoutIndex = process.argv.indexOf('--timeout')
 let timeout = timeoutIndex > -1 && timeoutIndex + 1 < process.argv.length
     ? parseInt(process.argv[timeoutIndex + 1])
@@ -47,12 +51,14 @@ app.get('/api/vm/net/connect', (req, res) => {
   })
 })
 
-app.use(netApi({
-  allowOrigin: '*',
-  log: process.argv.includes('--log') || process.env.LOG === 'true',
-  timeout
-}))
-if (!isProd) {
+if (!isVercel) {
+  app.use(netApi({
+    allowOrigin: '*',
+    log: process.argv.includes('--log') || process.env.LOG === 'true',
+    timeout
+  }))
+}
+if (!isProd && !isVercel) {
   app.use('/sounds', express.static(path.join(__dirname, './generated/sounds/')))
 }
 
@@ -237,7 +243,7 @@ app.get('/config.json', (req, res, next) => {
     ...publicConfig,
   })
 })
-if (isProd) {
+if (isProd && !isVercel) {
   // add headers to enable shared array buffer
   app.use((req, res, next) => {
     res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
@@ -255,23 +261,26 @@ if (isProd) {
 const numArg = process.argv.find(x => x.match(/^\d+$/))
 const port = (require.main === module ? numArg : undefined) || 8080
 
-// Start the server
-const server =
-  app.listen(port, async function () {
-    console.log('Proxy server listening on port ' + server.address().port)
-    if (siModule && isProd) {
-      const _interfaces = await siModule.networkInterfaces()
-      const interfaces = Array.isArray(_interfaces) ? _interfaces : [_interfaces]
-      let netInterface = interfaces.find(int => int.default)
-      if (!netInterface) {
-        netInterface = interfaces.find(int => !int.virtual) ?? interfaces[0]
-        console.warn('Failed to get the default network interface, searching for fallback')
+// Only start listening when run directly (node server.js).
+// When imported by Vercel (or tests) the caller handles the HTTP transport.
+if (require.main === module) {
+  const server =
+    app.listen(port, async function () {
+      console.log('Proxy server listening on port ' + server.address().port)
+      if (siModule && isProd) {
+        const _interfaces = await siModule.networkInterfaces()
+        const interfaces = Array.isArray(_interfaces) ? _interfaces : [_interfaces]
+        let netInterface = interfaces.find(int => int.default)
+        if (!netInterface) {
+          netInterface = interfaces.find(int => !int.virtual) ?? interfaces[0]
+          console.warn('Failed to get the default network interface, searching for fallback')
+        }
+        if (netInterface) {
+          const address = netInterface.ip4
+          console.log(`You can access the server on http://localhost:${port} or http://${address}:${port}`)
+        }
       }
-      if (netInterface) {
-        const address = netInterface.ip4
-        console.log(`You can access the server on http://localhost:${port} or http://${address}:${port}`)
-      }
-    }
-  })
+    })
+}
 
 module.exports = { app }

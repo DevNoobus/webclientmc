@@ -1,6 +1,32 @@
 {
-    "github": {
-        "enabled": false,
-        "silent": false
+  "version": 2,
+  "buildCommand": "pnpm run build",
+  "outputDirectory": "dist",
+  "github": {
+    "enabled": true,
+    "silent": false
+  },
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 60,
+      "memory": 512
     }
+  },
+  "rewrites": [
+    { "source": "/auth/ms",              "destination": "/api/index" },
+    { "source": "/session",              "destination": "/api/index" },
+    { "source": "/realms/list",          "destination": "/api/index" },
+    { "source": "/realms/address",       "destination": "/api/index" },
+    { "source": "/api/vm/net/connect",   "destination": "/api/index" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy",   "value": "same-origin" },
+        { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" }
+      ]
+    }
+  ]
 }
+
