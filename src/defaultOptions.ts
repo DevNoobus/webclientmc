@@ -33,6 +33,7 @@ export const defaultOptions = {
   gpuPreference: 'default' as 'default' | 'high-performance' | 'low-power',
   renderPixelRatio: 'auto' as 'auto' | '0.5' | '0.75' | '1' | '1.5' | '2',
   potatoMode: false,
+  hyperOptimize: false,
   backgroundRendering: '20fps' as 'full' | '20fps' | '5fps',
   /** @unstable */
   disableAssets: false,

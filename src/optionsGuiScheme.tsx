@@ -66,6 +66,11 @@ export const guiOptionsScheme: {
         tooltip: 'Overrides all graphics settings to their absolute minimum for maximum performance. Individual settings are not changed — disable to restore them.',
         enableWarning: 'Potato mode forces 0.5x resolution, disables lighting, smooth lighting, starfield and skybox until turned off.',
       },
+      hyperOptimize: {
+        text: 'Hyper Optimize',
+        tooltip: 'Maximum FPS mode: 0.5x resolution, full bright, no lighting, no sky/skybox/starfield. Entities, nametags, and block entities stay on. Render distance is unchanged.',
+        enableWarning: 'Hyper Optimize disables all lighting (full bright) and sky rendering for maximum FPS. Entities, nametags, and block entities remain visible.',
+      },
     },
     {
       custom () {

@@ -91,7 +91,7 @@ export const watchOptionsAfterViewerInit = () => {
     // 'auto' means uncapped (use devicePixelRatio as-is); numeric strings set the ratio directly.
     // The DocumentRenderer render loop detects this change and calls updatePixelRatio()
     // within one frame, so no page reload is needed.
-    if (!options.potatoMode) {
+    if (!options.potatoMode && !options.hyperOptimize) {
       appViewer.config.renderPixelRatio = o.renderPixelRatio === 'auto' ? undefined : parseFloat(o.renderPixelRatio)
     }
   })
@@ -119,23 +119,23 @@ export const watchOptionsAfterViewerInit = () => {
 
   appViewer.inWorldRenderingConfig.smoothLighting = options.smoothLighting
   subscribeKey(options, 'smoothLighting', () => {
-    if (!options.potatoMode) appViewer.inWorldRenderingConfig.smoothLighting = options.smoothLighting
+    if (!options.potatoMode && !options.hyperOptimize) appViewer.inWorldRenderingConfig.smoothLighting = options.smoothLighting
   })
 
   subscribeKey(options, 'newVersionsLighting', () => {
-    appViewer.inWorldRenderingConfig.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting
+    if (!options.hyperOptimize) appViewer.inWorldRenderingConfig.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting
   })
 
   customEvents.on('mineflayerBotCreated', () => {
-    appViewer.inWorldRenderingConfig.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting
+    if (!options.hyperOptimize) appViewer.inWorldRenderingConfig.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting
   })
 
   watchValue(options, o => {
-    appViewer.inWorldRenderingConfig.starfield = o.starfieldRendering
+    if (!options.potatoMode && !options.hyperOptimize) appViewer.inWorldRenderingConfig.starfield = o.starfieldRendering
   })
 
   watchValue(options, o => {
-    appViewer.inWorldRenderingConfig.defaultSkybox = o.defaultSkybox
+    if (!options.potatoMode && !options.hyperOptimize) appViewer.inWorldRenderingConfig.defaultSkybox = o.defaultSkybox
   })
 
   // Potato mode: override renderer settings for maximum performance.
@@ -161,6 +161,36 @@ export const watchOptionsAfterViewerInit = () => {
     applyPotatoMode(options.potatoMode, options)
   })
 
+  // Hyper Optimize: absolute minimum quality for maximum FPS.
+  // Overrides renderer state only. Does not touch stored option values.
+  const applyHyperOptimize = (enabled: boolean, o: typeof options) => {
+    if (enabled) {
+      // Minimum resolution
+      appViewer.config.renderPixelRatio = 0.5
+      // Full bright: disable the lighting pass entirely (chunks are meshed at max light)
+      appViewer.inWorldRenderingConfig.enableLighting = false
+      appViewer.inWorldRenderingConfig.smoothLighting = false
+      // Disable all sky/environment rendering
+      appViewer.inWorldRenderingConfig.dayCycle = false
+      appViewer.inWorldRenderingConfig.starfield = false
+      appViewer.inWorldRenderingConfig.defaultSkybox = false
+      appViewer.inWorldRenderingConfig.renderEntities = true
+      appViewer.inWorldRenderingConfig.showNametags = true
+    } else {
+      appViewer.config.renderPixelRatio = o.renderPixelRatio === 'auto' ? undefined : parseFloat(o.renderPixelRatio)
+      appViewer.inWorldRenderingConfig.enableLighting = true
+      appViewer.inWorldRenderingConfig.smoothLighting = o.smoothLighting
+      appViewer.inWorldRenderingConfig.dayCycle = o.dayCycleAndLighting
+      appViewer.inWorldRenderingConfig.starfield = o.starfieldRendering
+      appViewer.inWorldRenderingConfig.defaultSkybox = o.defaultSkybox
+      appViewer.inWorldRenderingConfig.showNametags = o.showNametags
+      appViewer.inWorldRenderingConfig.renderEntities = o.renderEntities
+    }
+  }
+  subscribeKey(options, 'hyperOptimize', () => {
+    applyHyperOptimize(options.hyperOptimize, options)
+  })
+
   watchValue(options, o => {
     // appViewer.inWorldRenderingConfig.neighborChunkUpdates = o.neighborChunkUpdates
   })
@@ -173,7 +203,7 @@ export const watchOptionsAfterWorldViewInit = (worldView: WorldDataEmitter) => {
     appViewer.inWorldRenderingConfig.renderEars = o.renderEars
     appViewer.inWorldRenderingConfig.showHand = o.showHand
     appViewer.inWorldRenderingConfig.viewBobbing = o.viewBobbing
-    if (!options.potatoMode) {
+    if (!options.potatoMode && !options.hyperOptimize) {
       appViewer.inWorldRenderingConfig.dayCycle = o.dayCycleAndLighting
     }
   })
