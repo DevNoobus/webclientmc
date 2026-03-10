@@ -35,10 +35,10 @@ const buildingVersion = new Date().toISOString().split(':')[0]
 const dev = process.env.NODE_ENV === 'development'
 const disableServiceWorker = process.env.DISABLE_SERVICE_WORKER === 'true'
 
-let releaseTag
-let releaseLink
-let releaseChangelog
-let githubRepositoryFallback
+let releaseTag: string | undefined
+let releaseLink: string | undefined
+let releaseChangelog: string | undefined
+let githubRepositoryFallback: string | undefined
 
 if (fs.existsSync('./assets/release.json')) {
     const releaseJson = JSON.parse(fs.readFileSync('./assets/release.json', 'utf8'))

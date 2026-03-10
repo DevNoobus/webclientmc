@@ -43,6 +43,7 @@ import BedTime from './react/BedTime'
 import NoModalFoundProvider from './react/NoModalFoundProvider'
 import SignInMessageProvider from './react/SignInMessageProvider'
 import BookProvider from './react/BookProvider'
+import VillagerTradingProvider from './react/VillagerTradingProvider'
 import { options } from './optionsStorage'
 import BossBarOverlayProvider from './react/BossBarOverlayProvider'
 import ModsPage from './react/ModsPage'
@@ -178,6 +179,7 @@ const InGameUi = () => {
           <IndicatorEffectsProvider displayEffects={!disabledUiParts.includes('effects')} displayIndicators={!disabledUiParts.includes('indicators')} />
           {!disabledUiParts.includes('crosshair') && <Crosshair />}
           {!disabledUiParts.includes('books') && <BookProvider />}
+          <VillagerTradingProvider />
           {!disabledUiParts.includes('bossbars') && displayBossBars && <BossBarOverlayProvider />}
           <VoiceMicrophone />
           <ChunksDebugScreen />

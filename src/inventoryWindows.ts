@@ -1,5 +1,6 @@
 import { proxy, subscribe } from 'valtio'
 import { showInventory } from 'minecraft-inventory-gui/web/ext.mjs'
+import { villagerState } from './react/VillagerTradingProvider'
 
 // import Dirt from 'mc-assets/dist/other-textures/latest/blocks/dirt.png'
 import { RecipeItem } from 'minecraft-data'
@@ -117,6 +118,17 @@ export const onGameLoad = () => {
       // todo format
       displayClientChat(`[client error] cannot open unimplemented window ${win.id} (${win.type}). Slots: ${win.slots.map(item => getItemName(item)).filter(Boolean).join(', ')}`)
       bot.currentWindow?.['close']()
+    }
+  })
+
+  bot._client.on('trade_list', (data: any) => {
+    villagerState.current = {
+      trades: data.trades ?? [],
+      villagerLevel: data.villagerLevel ?? 1,
+      experience: data.experience ?? 0,
+      isRegularVillager: data.isRegularVillager ?? true,
+      canRestock: data.canRestock ?? true,
+      windowId: data.windowId ?? 0,
     }
   })
 
@@ -436,6 +448,15 @@ const openWindow = (type: string | undefined, title: string | any = undefined) =
     showInventoryPlayer()
   }
   cleanLoadedImagesCache()
+  if (type === 'VillagerWin') {
+    // Custom React UI — no canvas; just close the bot window when the modal is dismissed
+    onModalClose(() => {
+      if (bot.currentWindow && !skipClosePacketSending) bot.currentWindow['close']()
+      villagerState.current = null
+      skipClosePacketSending = false
+    })
+    return
+  }
   const inv = openItemsCanvas(type)
   inv.canvasManager.children[0].mobileHelpers = miscUiState.currentTouch
   window.inventory = inv
