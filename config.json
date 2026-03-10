@@ -1,7 +1,7 @@
 {
   "version": 1,
   "defaultHost": "<from-proxy>",
-  "defaultProxy": "https://proxy.mcraft.fun",
+  "defaultProxy": "mc.sathelper.xyz:8080",
   "mapsProvider": "https://maps.mcraft.fun/",
   "skinTexturesProxy": "",
   "peerJsServer": "",

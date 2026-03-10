@@ -35,7 +35,8 @@ if (isNaN(timeout) || timeout < 0) {
 }
 app.use(compression())
 app.use(cors())
-app.use(express.json())
+// Do NOT use express.json() globally — it consumes the body stream before
+// net-browserify can read it. Apply it only to specific API routes below.
 
 // Advertise local Microsoft auth capabilities on the net-browserify discovery
 // endpoint. Must be registered BEFORE app.use(netApi(...)) so Express matches
@@ -74,7 +75,7 @@ console.log('[MSAuth/server] READY – using live+NintendoSwitch (mineflayer def
 //   { user_code, verification_uri, expires_in }  – device code to display
 //   { token, newCache }                          – success + updated cache
 //   { error }                                    – failure message
-app.post('/auth/ms', async (req, res) => {
+app.post('/auth/ms', express.json(), async (req, res) => {
   res.setHeader('Content-Type', 'text/plain; charset=utf-8')
   res.setHeader('Transfer-Encoding', 'chunked')
   res.setHeader('Cache-Control', 'no-cache, no-transform')
@@ -153,7 +154,7 @@ function makeMemCache (body, excludeKeys) {
 // POST /realms/list
 // Returns the authenticated user's Minecraft Realms.
 // Body: { platform: 'java'|'bedrock', ...cachedTokens }
-app.post('/realms/list', async (req, res) => {
+app.post('/realms/list', express.json(), async (req, res) => {
   const platform = req.body?.platform ?? 'java'
   const cache = makeMemCache(req.body, new Set(['platform']))
   try {
@@ -181,7 +182,7 @@ app.post('/realms/list', async (req, res) => {
 // POST /realms/address
 // Returns { host, port } for a Realm by ID.
 // Body: { platform: 'java'|'bedrock', realmId: number, ...cachedTokens }
-app.post('/realms/address', async (req, res) => {
+app.post('/realms/address', express.json(), async (req, res) => {
   const platform = req.body?.platform ?? 'java'
   const realmId = req.body?.realmId
   if (!realmId) return res.status(400).json({ error: 'realmId required' })
@@ -202,7 +203,7 @@ app.post('/realms/address', async (req, res) => {
 // (browsers cannot call sessionserver.mojang.com cross-origin directly).
 // The browser shim (yggdrasilReplacement.ts) computes the SHA-1 hash and sends
 // the already-hashed serverId here – we just forward it straight to Mojang.
-app.post('/session', async (req, res) => {
+app.post('/session', express.json(), async (req, res) => {
   try {
     const response = await fetch('https://sessionserver.mojang.com/session/minecraft/join', {
       method: 'POST',
@@ -239,7 +240,7 @@ app.get('/config.json', (req, res, next) => {
   } catch { }
   res.json({
     ...config,
-    'defaultProxy': '', // use current url (this server)
+    'defaultProxy': 'mc.sathelper.xyz:8080',
     ...publicConfig,
   })
 })
