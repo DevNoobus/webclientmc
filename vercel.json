@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "rootDirectory": ".",
   "installCommand": "pnpm install --no-frozen-lockfile",
   "buildCommand": "pnpm -w run build",
   "outputDirectory": "dist",
