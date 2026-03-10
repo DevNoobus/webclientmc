@@ -84,7 +84,7 @@ const AppStatusBase = ({
             </p>}
           </>
         }
-        backdrop='dirt'
+        backdrop={false}
       >
         {isError && (
           <>

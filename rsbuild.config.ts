@@ -237,7 +237,7 @@ const appConfig = defineConfig({
                 }
                 if (!dev) {
                     build.onBeforeBuild(async () => {
-                        prep()
+                        await prep()
                     })
                     build.onAfterBuild(async () => {
                         if (fs.readdirSync('./assets/customTextures').length > 0) {
