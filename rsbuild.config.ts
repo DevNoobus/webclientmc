@@ -131,9 +131,10 @@ const appConfig = defineConfig({
                 },
             },
         },
+        cleanDistPath: false,
         distPath: SINGLE_FILE_BUILD ? {
             html: './single',
-        } : undefined,
+        } : { root: 'dist' },
         inlineScripts: SINGLE_FILE_BUILD,
         inlineStyles: SINGLE_FILE_BUILD,
         // 50kb limit for data uri
